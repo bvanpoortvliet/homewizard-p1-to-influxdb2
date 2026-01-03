@@ -56,7 +56,7 @@ jobs:
     name: Notify Discord on fail
     runs-on: ubuntu-latest
     environment: Main
-    if: fail()
+    if: failure()
     steps:
       - name: Notify Discord
         env: # Or as an environment variable
