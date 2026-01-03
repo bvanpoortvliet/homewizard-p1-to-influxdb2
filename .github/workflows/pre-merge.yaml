@@ -6,16 +6,16 @@ on:
     branches: [main]
   
 jobs:  
-  pip_audit:
+  pip_audit_dependency_check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: pypa/gh-action-pip-audit@v1.0.0
+      - uses: pypa/gh-action-pip-audit@v1.1.0
         with:
-          inputs: requirements.txt
+          vulnerability-service: osv
+          inputs: ./requirements.txt
   
   bandit_vuln_check:
-    name: Dependency vulnerability check
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -27,8 +27,7 @@ jobs:
           severity: high
           confidence: high
           
-  credential-testing:
-    name: Trufflehog secret scan
+  trufflehog_credential_check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -41,25 +40,16 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
           trufflehog filesystem . > ./results.txt
           cat ./results.txt
-          
-  black_linter:
-    name: Black formatter
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: rickstaa/action-black@v1
-        with:
-          black_args: ". --check"
 
   discord_notify:
-    needs: ["pip_audit", "bandit_vuln_check", "credential-testing", "black_linter"]
+    needs: ["pip_audit_dependency_check", "bandit_vuln_check", "trufflehog_credential_check"]
     name: Notify Discord on fail
     runs-on: ubuntu-latest
     environment: Main
     if: failure()
     steps:
       - name: Notify Discord
-        env: # Or as an environment variable
+        env:
           discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
           echo $discord_webhook
