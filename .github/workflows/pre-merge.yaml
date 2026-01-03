@@ -6,7 +6,7 @@ on:
     branches: [main]
   
 jobs:  
-  pip_audit:
+  pip_audit_dependency_check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -16,7 +16,6 @@ jobs:
           inputs: ./requirements.txt
   
   bandit_vuln_check:
-    name: Dependency vulnerability check
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -28,8 +27,7 @@ jobs:
           severity: high
           confidence: high
           
-  credential-testing:
-    name: Trufflehog secret scan
+  trufflehog_credential_check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -44,14 +42,14 @@ jobs:
           cat ./results.txt
 
   discord_notify:
-    needs: ["pip_audit", "bandit_vuln_check", "credential-testing"]
+    needs: ["pip_audit_dependency_check", "bandit_vuln_check", "trufflehog_credential_check"]
     name: Notify Discord on fail
     runs-on: ubuntu-latest
     environment: Main
     if: failure()
     steps:
       - name: Notify Discord
-        env: # Or as an environment variable
+        env:
           discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
           echo $discord_webhook
