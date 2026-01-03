@@ -60,6 +60,7 @@ jobs:
     steps:
       - name: Notify Discord
         env: # Or as an environment variable
-          discord_webhook: ${{ secrets.GITHUB_WEBHOOK }}
+          discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          curl -H "Content-Type: application/json" -d '{"username": "test", "content": "Workflow Failed - "}' "$discord_webhook" 
+          echo $discord_webhook
+          curl -H "Content-Type: application/json" -d '{"username": "GitHub Workflow Runner", "content": "Workflow Run Failed - ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}' "$discord_webhook" 
